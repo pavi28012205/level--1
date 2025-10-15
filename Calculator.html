@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind for custom colors and font -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'calculator-bg': '#374151', // Dark Gray - Base for Neomorphism
+                        'display-bg': '#1f2937',    // Even Darker Gray
+                        'accent': '#4f46e5',        // Primary Indigo (Equals)
+                        'operator': '#f59e0b',      // Amber (Operators)
+                        'number-bg': '#f3f4f6',     // Light elegant background for numbers
+                        'number-text': '#1f2937',   // Dark text for contrast
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Ensures the calculator is centered and responsive */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f3f4f6;
+        }
+
+        /* Responsive grid layout for buttons */
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px; 
+        }
+
+        /* Base button styling for physical, round look */
+        .calc-button {
+            /* Ensuring square aspect ratio for roundness in the grid */
+            width: 100%;
+            padding-top: 100%; 
+            position: relative;
+            
+            /* Tailwind classes */
+            @apply rounded-full text-3xl font-semibold transition duration-150; 
+            user-select: none; 
+            cursor: pointer;
+        }
+        
+        /* Content container to center the text/icon vertically and horizontally */
+        .calc-button-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            line-height: 1; /* Ensure centering works correctly */
+        }
+        
+        /* --- Neomorphism Shadows (Unpressed State) --- */
+
+        /* Number button colors (Light/Elegant) */
+        .btn-number {
+            @apply bg-number-bg text-number-text;
+            /* Shadow: Dark bottom/right (depth) and light top/left (highlight) */
+            box-shadow: 6px 6px 12px #2f3743, -6px -6px 12px #414b5f;
+        }
+        /* Operator, Equals, and Clear buttons (Darker/Accent Look) */
+        .btn-operator, .btn-clear, .btn-equals {
+            box-shadow: 6px 6px 12px #2f3743, -6px -6px 12px #414b5f;
+        }
+        .btn-operator { @apply bg-operator text-white; }
+        .btn-clear { @apply bg-red-500 text-white; }
+        .btn-equals { @apply bg-accent text-white; }
+
+
+        /* --- Pressed State (Inset Shadow) --- */
+
+        .calc-button:active {
+            /* Inset shadow when button is pressed */
+            box-shadow: inset 4px 4px 8px #2f3743, inset -4px -4px 8px #414b5f;
+            transform: scale(0.98); /* Subtle shrinking effect */
+        }
+
+        /* Hover effects */
+        .btn-number:hover { @apply bg-gray-300; }
+        .btn-operator:hover { @apply bg-amber-600; }
+        .btn-clear:hover { @apply bg-red-600; }
+        .btn-equals:hover { @apply bg-indigo-600; }
+
+        /* Icon for Backspace */
+        .icon-backspace {
+            font-size: 1.5rem; /* Slightly smaller icon */
+        }
+    </style>
+</head>
+<body class="font-sans">
+
+    <!-- Calculator Container (max-w-md and p-8) -->
+    <div class="w-full max-w-md p-8 bg-calculator-bg rounded-3xl shadow-2xl">
+        
+        <!-- Calculator Display -->
+        <div class="mb-6 p-5 bg-display-bg rounded-xl shadow-inner overflow-hidden">
+            <div id="previous-operand" class="text-white/70 text-xl text-right h-8"></div>
+            <div id="current-operand" class="text-white text-6xl font-light text-right h-16 truncate">0</div>
+        </div>
+
+        <!-- Calculator Buttons Grid -->
+        <div class="button-grid">
+            
+            <!-- Row 1: Utility and Division -->
+            <button class="calc-button btn-clear" data-operation="clear"><span class="calc-button-content">C</span></button>
+            <button class="calc-button btn-number" data-operation="sign"><span class="calc-button-content">±</span></button>
+            <button class="calc-button btn-number" data-operation="percent"><span class="calc-button-content">%</span></button>
+            <button class="calc-button btn-operator" data-operation="/"><span class="calc-button-content">÷</span></button>
+
+            <!-- Row 2: 7, 8, 9, Multiply -->
+            <button class="calc-button btn-number" data-number="7"><span class="calc-button-content">7</span></button>
+            <button class="calc-button btn-number" data-number="8"><span class="calc-button-content">8</span></button>
+            <button class="calc-button btn-number" data-number="9"><span class="calc-button-content">9</span></button>
+            <button class="calc-button btn-operator" data-operation="*"><span class="calc-button-content">×</span></button>
+
+            <!-- Row 3: 4, 5, 6, Subtract -->
+            <button class="calc-button btn-number" data-number="4"><span class="calc-button-content">4</span></button>
+            <button class="calc-button btn-number" data-number="5"><span class="calc-button-content">5</span></button>
+            <button class="calc-button btn-number" data-number="6"><span class="calc-button-content">6</span></button>
+            <button class="calc-button btn-operator" data-operation="-"><span class="calc-button-content">−</span></button>
+
+            <!-- Row 4: 1, 2, 3, Add -->
+            <button class="calc-button btn-number" data-number="1"><span class="calc-button-content">1</span></button>
+            <button class="calc-button btn-number" data-number="2"><span class="calc-button-content">2</span></button>
+            <button class="calc-button btn-number" data-number="3"><span class="calc-button-content">3</span></button>
+            <button class="calc-button btn-operator" data-operation="+"><span class="calc-button-content">+</span></button>
+
+            <!-- Row 5: 0, Decimal, Backspace, Equals -->
+            <button class="calc-button btn-number" data-number="0"><span class="calc-button-content">0</span></button>
+            <button class="calc-button btn-number" data-number="."><span class="calc-button-content">.</span></button>
+            <button class="calc-button btn-number" data-operation="backspace"><span class="calc-button-content icon-backspace">&leftarrow;</span></button>
+            <button class="calc-button btn-equals" data-operation="="><span class="calc-button-content">=</span></button>
+        </div>
+
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Get elements from the DOM
+        const previousOperandElement = document.getElementById('previous-operand');
+        const currentOperandElement = document.getElementById('current-operand');
+        const numberButtons = document.querySelectorAll('[data-number]');
+        const operationButtons = document.querySelectorAll('[data-operation]');
+        
+        // --- Calculator State ---
+        let currentOperand = '';
+        let previousOperand = '';
+        let operation = undefined;
+        let waitingForSecondOperand = false;
+        let isError = false;
+
+        // --- Core Calculator Class/Functions ---
+
+        /**
+         * Clears all state and resets the display.
+         */
+        function clear() {
+            currentOperand = '0';
+            previousOperand = '';
+            operation = undefined;
+            waitingForSecondOperand = false;
+            isError = false;
+        }
+        
+        /**
+         * Removes the last digit from the current operand.
+         */
+        function backspace() {
+            if (isError) return;
+            if (currentOperand === '' || currentOperand === '0') return;
+            
+            // Remove the last character
+            currentOperand = currentOperand.slice(0, -1);
+            
+            // If the string becomes empty, reset to '0'
+            if (currentOperand === '') {
+                currentOperand = '0';
+            }
+        }
+
+        /**
+         * Appends a number or decimal point to the current operand.
+         * @param {string} number - The number string (or '.') to append.
+         */
+        function appendNumber(number) {
+            if (isError) return;
+
+            // Handle decimal point input
+            if (number === '.' && currentOperand.includes('.')) return;
+            if (number === '.' && currentOperand === '') {
+                 currentOperand = '0.';
+            } else if (currentOperand === '0' && number !== '.') {
+                currentOperand = number; // Replace initial zero
+            } else {
+                currentOperand += number;
+            }
+        }
+        
+        /**
+         * Chooses and sets the operation, storing the current display value as the previous operand.
+         * @param {string} selectedOperation - The operator symbol (+, -, *, /) or function (e.g., '%').
+         */
+        function chooseOperation(selectedOperation) {
+            if (isError) return;
+            
+            // Handle special functions first
+            if (selectedOperation === 'clear') {
+                clear();
+                return;
+            }
+            if (selectedOperation === 'backspace') {
+                backspace();
+                return;
+            }
+            if (selectedOperation === 'sign') {
+                currentOperand = (parseFloat(currentOperand) * -1).toString();
+                return;
+            }
+            if (selectedOperation === 'percent') {
+                currentOperand = (parseFloat(currentOperand) / 100).toString();
+                return;
+            }
+
+            // Standard operation logic
+            if (currentOperand === '') return;
+
+            if (previousOperand !== '' && operation !== undefined) {
+                // If there's a pending operation, calculate it first
+                calculate();
+            }
+
+            if (selectedOperation === '=') {
+                // If equals is pressed without a pending operation, just update display
+                return;
+            }
+
+            operation = selectedOperation;
+            previousOperand = currentOperand;
+            currentOperand = '';
+            waitingForSecondOperand = true;
+        }
+
+        /**
+         * Performs the calculation based on the stored operation and operands.
+         */
+        function calculate() {
+            let computation;
+            const prev = parseFloat(previousOperand);
+            const current = parseFloat(currentOperand);
+
+            if (isNaN(prev) || isNaN(current) || operation === undefined) return;
+
+            switch (operation) {
+                case '+':
+                    computation = prev + current;
+                    break;
+                case '-':
+                    computation = prev - current;
+                    break;
+                case '*':
+                    computation = prev * current;
+                    break;
+                case '/':
+                    if (current === 0) {
+                        isError = true;
+                        computation = 'Error: Div by 0';
+                        break;
+                    }
+                    computation = prev / current;
+                    break;
+                default:
+                    return;
+            }
+
+            if (isError) {
+                currentOperand = computation;
+            } else {
+                // Handle floating point precision issues (optional, but good practice)
+                computation = parseFloat(computation.toFixed(10)); 
+                currentOperand = computation.toString();
+                operation = undefined;
+                previousOperand = '';
+                waitingForSecondOperand = false;
+            }
+        }
+        
+        /**
+         * Formats the number for display (handles large numbers, decimals, and commas).
+         * @param {string} number - The raw number string.
+         * @returns {string} The formatted number string.
+         */
+        function getDisplayNumber(number) {
+            if (number === '') return '';
+            if (isError) return number;
+
+            const stringNumber = number.toString();
+            // Check for scientific notation and handle it gracefully
+            if (stringNumber.includes('e')) {
+                return stringNumber;
+            }
+
+            const integerDigits = parseFloat(stringNumber.split('.')[0]);
+            const decimalDigits = stringNumber.split('.')[1];
+            
+            let integerDisplay;
+            if (isNaN(integerDigits)) {
+                integerDisplay = '';
+            } else {
+                // Format integer part with commas
+                integerDisplay = integerDigits.toLocaleString('en', { maximumFractionDigits: 0 });
+            }
+
+            if (decimalDigits != null) {
+                return `${integerDisplay}.${decimalDigits}`;
+            } else {
+                return integerDisplay;
+            }
+        }
+
+        /**
+         * Updates the display elements in the UI.
+         */
+        function updateDisplay() {
+            if (isError) {
+                currentOperandElement.textContent = currentOperand;
+                previousOperandElement.textContent = '';
+                return;
+            }
+            
+            // Limit current operand length to prevent display overflow
+            const maxLength = 15;
+            let displayValue = getDisplayNumber(currentOperand) || '0';
+            if (displayValue.length > maxLength && !displayValue.includes('e')) {
+                 currentOperandElement.textContent = parseFloat(currentOperand).toExponential(8);
+            } else {
+                 currentOperandElement.textContent = displayValue;
+            }
+            
+            
+            if (operation != null) {
+                let displayOperator = operation;
+                if (operation === '*') displayOperator = '×';
+                if (operation === '/') displayOperator = '÷';
+                
+                previousOperandElement.textContent = 
+                    `${getDisplayNumber(previousOperand)} ${displayOperator}`;
+            } else {
+                previousOperandElement.textContent = '';
+            }
+        }
+        
+        // Initialize the calculator
+        clear();
+        updateDisplay();
+
+
+        // --- Event Listeners ---
+
+        // Listen for number buttons (including decimal)
+        numberButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                if (waitingForSecondOperand) {
+                    currentOperand = ''; // Clear for new number if waiting for second operand
+                    waitingForSecondOperand = false;
+                }
+                appendNumber(button.dataset.number);
+                updateDisplay();
+            });
+        });
+
+        // Listen for operation buttons
+        operationButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const op = button.dataset.operation;
+
+                if (op === '=') {
+                    if (previousOperand !== '' && operation !== undefined) {
+                        calculate();
+                    }
+                } else if (op === 'clear') {
+                    clear();
+                } else {
+                    chooseOperation(op);
+                }
+                updateDisplay();
+            });
+        });
+
+        // Optional: Keyboard support for better usability
+        document.addEventListener('keydown', (e) => {
+            let key = e.key;
+
+            if (key >= '0' && key <= '9' || key === '.') {
+                 document.querySelector(`[data-number="${key}"]`)?.click();
+            } else if (key === '+' || key === '-' || key === '*' || key === '/') {
+                 document.querySelector(`[data-operation="${key}"]`)?.click();
+            } else if (key === 'Enter' || key === '=') {
+                e.preventDefault(); // Prevent accidental form submission if in a hypothetical form
+                document.querySelector(`[data-operation="="]`).click();
+            } else if (key === 'Delete' || key === 'Backspace') {
+                document.querySelector(`[data-operation="backspace"]`)?.click();
+            } else if (key === 'c' || key === 'C' || key === 'Escape') {
+                document.querySelector(`[data-operation="clear"]`)?.click();
+            }
+        });
+    </script>
+</body>
+</html>
